@@ -12,6 +12,8 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.view.Menu;
+import de.maxbuttlies.matekarte.list.ListSectionFragment;
+import de.maxbuttlies.matekarte.map.MapSectionFragment;
 
 public class MainActivity extends FragmentActivity implements
 		ActionBar.TabListener {
@@ -28,6 +30,9 @@ public class MainActivity extends FragmentActivity implements
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		// Funkiotniert nicht in Zusammenhang mit der Actionbar
+		// requestWindowFeature(Window.FEATURE_NO_TITLE);
+
 		setContentView(R.layout.activity_main);
 
 		// ConnectivityManager cm = (ConnectivityManager)

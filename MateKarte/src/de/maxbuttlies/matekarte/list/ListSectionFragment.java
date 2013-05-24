@@ -1,7 +1,9 @@
-package de.maxbuttlies.matekarte;
+package de.maxbuttlies.matekarte.list;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import org.osmdroid.util.BoundingBoxE6;
 
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -12,6 +14,9 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.HorizontalScrollView;
 import android.widget.ListView;
+import de.maxbuttlies.matekarte.R;
+import de.maxbuttlies.matekarte.api.Dealer;
+import de.maxbuttlies.matekarte.api.DealerAPI;
 
 public class ListSectionFragment extends Fragment {
 
@@ -27,7 +32,7 @@ public class ListSectionFragment extends Fragment {
 				container, false);
 
 		DealerAsync dealerAsync = new DealerAsync();
-		dealerAsync.execute("");
+		// dealerAsync.execute("");
 		return v;
 	}
 
@@ -44,7 +49,7 @@ public class ListSectionFragment extends Fragment {
 			DealerAPI dealerAPI = new DealerAPI();
 
 			try {
-				return dealerAPI.getDealer(0, 0);
+				return dealerAPI.getDealerList(new BoundingBoxE6(0, 0, 0, 0));
 			} catch (Exception e) {
 				e.printStackTrace();
 				return null;
