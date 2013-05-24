@@ -29,6 +29,18 @@ public class MainActivity extends FragmentActivity implements
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
+
+		// ConnectivityManager cm = (ConnectivityManager)
+		// getSystemService(Context.CONNECTIVITY_SERVICE);
+		// NetworkInfo netInfo = cm.getActiveNetworkInfo();
+		// AlertDialog alert = new AlertDialog.Builder(this).create();
+		// if (!(netInfo != null && netInfo.isConnectedOrConnecting())) {
+		// alert.setMessage("kein interbnert");
+		// } else {
+		// alert.setMessage("interbnert");
+		// }
+		//
+		// alert.show();
 		this.appContext = getApplicationContext();
 		final ActionBar actionBar = getActionBar();
 		actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
@@ -87,7 +99,16 @@ public class MainActivity extends FragmentActivity implements
 
 		@Override
 		public Fragment getItem(int position) {
-			Fragment fragment = new ListSectionFragment();
+			Fragment fragment = null;
+			switch (position) {
+			case 1:
+				fragment = new ListSectionFragment();
+				break;
+
+			default:
+				fragment = new MapSectionFragment();
+				break;
+			}
 
 			return fragment;
 		}

@@ -1,15 +1,11 @@
 package de.maxbuttlies.matekarte;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
-
-import org.json.JSONObject;
 
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -35,7 +31,7 @@ public class ListSectionFragment extends Fragment {
 		return v;
 	}
 
-	private class DealerAsync extends AsyncTask<String, Void, String> {
+	private class DealerAsync extends AsyncTask<String, Void, List<Dealer>> {
 
 		@Override
 		protected void onPreExecute() {
@@ -44,26 +40,24 @@ public class ListSectionFragment extends Fragment {
 		}
 
 		@Override
-		protected String doInBackground(String... gps) {
+		protected List<Dealer> doInBackground(String... gps) {
 			DealerAPI dealerAPI = new DealerAPI();
 
 			try {
-				return dealerAPI.getMapDataJSON();
+				return dealerAPI.getDealer(0, 0);
 			} catch (Exception e) {
 				e.printStackTrace();
-				return "-1_" + e.getMessage();
+				return null;
 			}
 
 		}
 
-		protected void onPostExecute(String json) {
-
-			List<Item> items = parseJSON(json);
+		protected void onPostExecute(List<Dealer> dealer) {
 
 			ListView lv = (ListView) v.findViewById(R.id.dealerList);
 
 			List<String> tvs = new ArrayList<String>();
-			for (Item item : items) {
+			for (Dealer item : dealer) {
 
 				tvs.add(item.getName());
 			}
@@ -76,30 +70,4 @@ public class ListSectionFragment extends Fragment {
 		}
 	}
 
-	public List<Item> parseJSON(String json) {
-
-		List<Item> items = new ArrayList<Item>();
-
-		try {
-			JSONObject jsonObject = new JSONObject(json);
-			Log.i(MainActivity.class.getName(), "Number of entries "
-					+ jsonObject.length());
-			Iterator keys = jsonObject.keys();
-			while (keys.hasNext()) {
-				JSONObject obj = jsonObject.getJSONObject(keys.next()
-						.toString());
-				Item i = new Item();
-				i.setName(obj.getString("n"));
-				String coord = obj.getString("c");
-				coord = coord.substring(1, coord.length() - 1);
-				String[] c = coord.split(",");
-				i.setLat(Double.valueOf(c[0]));
-				i.setLon(Double.valueOf(c[1]));
-				items.add(i);
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		return items;
-	}
 }
