@@ -1,9 +1,9 @@
 package de.maxbuttlies.matekarte.list;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-
-import org.osmdroid.util.BoundingBoxE6;
+import java.util.Map;
 
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -12,7 +12,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
-import android.widget.HorizontalScrollView;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import de.maxbuttlies.matekarte.R;
 import de.maxbuttlies.matekarte.api.Dealer;
@@ -20,7 +20,7 @@ import de.maxbuttlies.matekarte.api.DealerAPI;
 
 public class ListSectionFragment extends Fragment {
 
-	HorizontalScrollView v;
+	LinearLayout v;
 
 	public ListSectionFragment() {
 	}
@@ -28,11 +28,11 @@ public class ListSectionFragment extends Fragment {
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 			Bundle savedInstanceState) {
-		v = (HorizontalScrollView) inflater.inflate(R.layout.fragment_list,
-				container, false);
+		v = (LinearLayout) inflater.inflate(R.layout.fragment_list, container,
+				false);
 
 		DealerAsync dealerAsync = new DealerAsync();
-		// dealerAsync.execute("");
+		dealerAsync.execute("");
 		return v;
 	}
 
@@ -49,7 +49,8 @@ public class ListSectionFragment extends Fragment {
 			DealerAPI dealerAPI = new DealerAPI();
 
 			try {
-				return dealerAPI.getDealerList(new BoundingBoxE6(0, 0, 0, 0));
+				Map<String, String> search = new HashMap<String, String>();
+				return dealerAPI.getDealerList(search);
 			} catch (Exception e) {
 				e.printStackTrace();
 				return null;

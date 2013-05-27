@@ -7,9 +7,9 @@ import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import org.json.JSONObject;
-import org.osmdroid.util.BoundingBoxE6;
 import org.osmdroid.util.GeoPoint;
 
 import android.util.Log;
@@ -17,26 +17,48 @@ import de.maxbuttlies.matekarte.MainActivity;
 
 public class DealerAPI {
 
+	public static final String SEARCHCITY = "CITY";
+
 	private static final String MAPDATAURL = "http://www.matekarte.de/dealers/map";
 	private static final String DEALERDATAURL = "http://www.matekarte.de/api/v1/dealers/";
+	private static final String GEOCODEURL = "http://www.matekarte.de/geocode?q=bonn";
 	private static List<Dealer> DEALERLIST = null;
 
-	public List<Dealer> getDealerList(BoundingBoxE6 bbox) throws Exception {
+	public List<Dealer> getDealerList() throws Exception {
 		if (DEALERLIST == null) {
 			updateDealer();
 		}
+
+		return DEALERLIST;
+
+	}
+
+	public GeoPoint findCity(String city) throws Exception {
+		String gc = loadJSON(GEOCODEURL + city);
+		System.out.println(gc);
+		String[] arr = gc.trim().substring(1, gc.length() - 1).split(",");
+		return new GeoPoint(Double.valueOf(arr[0]), Double.valueOf(arr[1]));
+	}
+
+	public List<Dealer> getDealerList(Map<String, String> search)
+			throws Exception {
+		if (DEALERLIST == null) {
+			updateDealer();
+		}
+
+		String city = search.containsKey(SEARCHCITY) ? search.get(SEARCHCITY)
+				: "";
+
 		List<Dealer> dealers = new ArrayList<Dealer>();
 		for (Dealer dealer : DEALERLIST) {
-			double lon = dealer.getLon();
-			double lat = dealer.getLat();
-			if (bbox.contains(new GeoPoint(lat, lon))) {
+			if (dealer.getCity().equalsIgnoreCase(city)) {
 				dealers.add(dealer);
-
+			} else if (search.isEmpty()) {
+				dealers.add(dealer);
 			}
 		}
 
 		return dealers;
-
 	}
 
 	public void updateDealer() throws Exception {
@@ -53,6 +75,8 @@ public class DealerAPI {
 			return getMapTest();
 		} else if (u.equals(DEALERDATAURL)) {
 			return getDealerTest();
+		} else if (u.startsWith(GEOCODEURL)) {
+			return "[50.7344839,7.0999274]";
 		} else {
 			return null;
 		}

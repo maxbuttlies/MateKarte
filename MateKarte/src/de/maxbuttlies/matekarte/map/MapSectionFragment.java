@@ -17,13 +17,16 @@ import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.DialogInterface.OnClickListener;
+import android.content.Intent;
 import android.graphics.drawable.Drawable;
 import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationManager;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.text.Editable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -38,6 +41,8 @@ public class MapSectionFragment extends Fragment {
 	private LinearLayout v;
 	MapView mapView;
 	private MapController mapController;
+
+	int zoom = 0;
 
 	public MapSectionFragment() {
 	}
@@ -61,27 +66,24 @@ public class MapSectionFragment extends Fragment {
 					true);
 
 			Location location = locationManager.getLastKnownLocation(provider);
-			List<String> providerList = locationManager.getAllProviders();
 			if (location == null) {
 				AlertDialog dialog = new AlertDialog.Builder(getActivity())
 						.create();
 				dialog.setMessage("Konnte keine Koordinaten ermitteln. Wo bist Du denn?");
 				final EditText place = new EditText(getActivity());
-				// dialog.addContentView(place, null);
+				dialog.setView(place);
 				dialog.setTitle("GPS Fehler");
 				dialog.setButton("OK", new OnClickListener() {
 
 					@Override
 					public void onClick(DialogInterface dialog, int which) {
-						Toast.makeText(getActivity(), place.getText(),
-								Toast.LENGTH_LONG).show();
-						refreshMap(new GeoPoint(50.745146, 7.098541),
-								mapView.getBoundingBox());
+						refreshMap(place.getText(), mapView.getBoundingBox());
 					}
+
 				});
 				dialog.show();
 			} else {
-				refreshMap(new GeoPoint(location), mapView.getBoundingBox());
+				refreshMap(new GeoPoint(location));
 			}
 
 			return v;
@@ -91,7 +93,12 @@ public class MapSectionFragment extends Fragment {
 		}
 	}
 
-	private void refreshMap(GeoPoint location, BoundingBoxE6 bbox) {
+	private void refreshMap(Editable text, BoundingBoxE6 boundingBox) {
+		PlaceSearchASync async = new PlaceSearchASync();
+		async.execute("");
+	}
+
+	private void refreshMap(GeoPoint location) {
 
 		// Überdnken, vielleicht nicht alle auf einmal laden, eher nur die
 		// sichtbaren
@@ -99,11 +106,11 @@ public class MapSectionFragment extends Fragment {
 		mapController.animateTo(location);
 
 		DealerMarkerASync async = new DealerMarkerASync();
-		async.execute(bbox);
+		async.execute("");
 	}
 
 	private class DealerMarkerASync extends
-			AsyncTask<BoundingBoxE6, Void, List<Dealer>> {
+			AsyncTask<String, Void, List<Dealer>> {
 		private ProgressDialog progressCircle = null;
 
 		@Override
@@ -118,11 +125,11 @@ public class MapSectionFragment extends Fragment {
 		}
 
 		@Override
-		protected List<Dealer> doInBackground(BoundingBoxE6... bbox) {
+		protected List<Dealer> doInBackground(String... s) {
 			DealerAPI dealerAPI = new DealerAPI();
 
 			try {
-				return dealerAPI.getDealerList(bbox[0]);
+				return dealerAPI.getDealerList();
 			} catch (Exception e) {
 				e.printStackTrace();
 				return null;
@@ -175,6 +182,7 @@ public class MapSectionFragment extends Fragment {
 						}
 					}, resourceProxy);
 			mapView.getOverlays().add(currentLocationOverlay);
+			mapView.refreshDrawableState();
 			progressCircle.hide();
 
 		}
@@ -206,22 +214,79 @@ public class MapSectionFragment extends Fragment {
 
 		}
 
-		protected void onPostExecute(Dealer dealer) {
+		protected void onPostExecute(final Dealer dealer) {
 			progressCircle.hide();
 			AlertDialog alert = new AlertDialog.Builder(getActivity()).create();
+
+			LayoutInflater inflater = (LayoutInflater) getActivity()
+					.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+
+			LinearLayout layout = (LinearLayout) inflater.inflate(
+					R.layout.dialog_dealerinfo, null);
+			alert.setView(layout);
+
 			alert.setTitle(dealer.getName());
-			alert.setMessage(dealer.getStreetNo() + "\n" + dealer.getZip()
-					+ " " + dealer.getCity() + "\n\n" + dealer.getPhone()
-					+ "\n" + dealer.getWeb());
-			alert.setButton("OK", new OnClickListener() {
 
-				@Override
-				public void onClick(DialogInterface dialog, int which) {
-					// TODO Auto-generated method stub
+			alert.setButton(AlertDialog.BUTTON_POSITIVE, "OK",
+					new OnClickListener() {
 
-				}
-			});
+						@Override
+						public void onClick(DialogInterface dialog, int which) {
+							// TODO Auto-generated method stub
+
+						}
+					});
+
+			alert.setButton(AlertDialog.BUTTON_NEUTRAL, "Route",
+					new OnClickListener() {
+
+						@Override
+						public void onClick(DialogInterface dialog, int which) {
+							Intent intent = new Intent(
+									android.content.Intent.ACTION_VIEW,
+									Uri.parse("geo:0,0?q=37.423156,-122.084917 ("
+											+ dealer.getName() + ")"));
+							getActivity().startActivity(intent);
+						}
+					});
+
 			alert.show();
 		}
 	}
+
+	private class PlaceSearchASync extends AsyncTask<String, Void, GeoPoint> {
+		private ProgressDialog progressCircle = null;
+
+		@Override
+		protected void onPreExecute() {
+			super.onPreExecute();
+			progressCircle = ProgressDialog
+					.show(getActivity(),
+							"Karte erstellen",
+							"Ich suche gerade die die gewählte Stadt verwirre mich bitte nicht!",
+							true, true);
+			progressCircle.show();
+		}
+
+		@Override
+		protected GeoPoint doInBackground(String... city) {
+			DealerAPI dealerAPI = new DealerAPI();
+
+			try {
+				return dealerAPI.findCity(city[0]);
+			} catch (Exception e) {
+				e.printStackTrace();
+				return null;
+			}
+
+		}
+
+		protected void onPostExecute(GeoPoint geoPoint) {
+
+			refreshMap(geoPoint);
+			progressCircle.hide();
+
+		}
+	}
+
 }

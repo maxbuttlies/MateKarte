@@ -3,8 +3,13 @@ package de.maxbuttlies.matekarte;
 import java.util.Locale;
 
 import android.app.ActionBar;
+import android.app.AlertDialog;
 import android.app.FragmentTransaction;
 import android.content.Context;
+import android.content.DialogInterface;
+import android.content.DialogInterface.OnClickListener;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
@@ -12,6 +17,7 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.view.Menu;
+import de.maxbuttlies.matekarte.api.Dealer;
 import de.maxbuttlies.matekarte.list.ListSectionFragment;
 import de.maxbuttlies.matekarte.map.MapSectionFragment;
 
@@ -136,4 +142,30 @@ public class MainActivity extends FragmentActivity implements
 		}
 	}
 
+	public static void buildDealerAlert(AlertDialog alert, final Dealer dealer,
+			final Context context) {
+		alert.setTitle(dealer.getName());
+		alert.setMessage(dealer.getStreetNo() + "\n" + dealer.getZip() + " "
+				+ dealer.getCity() + "\n\n" + dealer.getPhone() + "\n"
+				+ dealer.getWeb());
+		alert.setButton("OK", new OnClickListener() {
+
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				// TODO Auto-generated method stub
+
+			}
+		});
+
+		alert.setButton("Route", new OnClickListener() {
+
+			@Override
+			public void onClick(DialogInterface dialog, int which) {
+				Intent intent = new Intent(android.content.Intent.ACTION_VIEW,
+						Uri.parse("geo:0,0?q=37.423156,-122.084917 ("
+								+ dealer.getName() + ")"));
+				context.startActivity(intent);
+			}
+		});
+	}
 }
